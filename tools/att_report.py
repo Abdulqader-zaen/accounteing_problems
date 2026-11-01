@@ -1,12 +1,15 @@
 import sys,datetime as D,collections,html; sys.path.insert(0,__import__('os').path.dirname(__file__))
 from parse_frp import cells
 recs=[];cur={}
-for x,y,t in cells(sys.argv[1]):
+import argparse
+ap=argparse.ArgumentParser();ap.add_argument('out');ap.add_argument('files',nargs='+');ap.add_argument('--exclude',default='');ap.add_argument('--only',default='')
+A=ap.parse_args()
+allc=[c for f in A.files for c in cells(f)]
+for x,y,t in allc:
     if x==36: cur={'id':t}
     elif x==122: cur['name']=t
-    elif x==178: cur['dt']=t
-    elif x==414: cur['exc']=t; recs.append(cur)
-recs=[r for r in recs if r.get('dt','')[:2].isdigit()]
+    elif __import__('re').match(r'\d\d/\d\d/\d{4} \d\d:\d\d$',t): cur['dt']=t; recs.append(cur)
+recs=[r for r in recs if r.get('dt','')[:2].isdigit() and r['id'] not in A.exclude.split(',') and (not A.only or r['id'] in A.only.split(','))]
 names=collections.OrderedDict(); P=collections.defaultdict(lambda: collections.defaultdict(list))
 for r in sorted(recs,key=lambda r:(int(r['id']),D.datetime.strptime(r['dt'],'%d/%m/%Y %H:%M'))):
     dt=D.datetime.strptime(r['dt'],'%d/%m/%Y %H:%M'); names[r['id']]=r['name']; P[r['id']][dt.day].append(dt.time())
@@ -46,7 +49,7 @@ for eid,nm in names.items():
 <span>حضر <b>{att}</b> من {S['work']} يوم · غياب <b>{S['absent']}</b> · فترات بدون بصمة <b>{S['miss_in']+S['miss_out']}</b> · تأخير الفترة الأولى <b>{S['late_n']}</b> مرة ({fmt(S['late_m'])} ساعة) · تأخير الفترة الثانية <b>{S['early_n']}</b> مرة ({fmt(S['early_m'])} ساعة)</span></div>
 <table class="g">{''.join(rows)}</table></div>''')
 srows=''.join(f"<tr><td>{e}</td><td>{html.escape(n)}</td><td>{S['work']}</td><td>{a}</td><td class='{'bad' if S['absent'] else ''}'>{S['absent']}</td><td>{S['full']}</td><td class='{'bad' if S['miss_out'] else ''}'>{S['miss_out']}</td><td>{S['miss_in']}</td><td>{S['late_n']}</td><td>{fmt(S['late_m'])}</td><td>{S['early_n']}</td><td>{fmt(S['early_m'])}</td></tr>" for e,n,S,a in summ)
-open(sys.argv[2],'w').write(f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
+open(A.out,'w').write(f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
 @font-face{{font-family:Naskh;font-weight:400;src:url("file://{FD}/noto-naskh-arabic-arabic-400-normal.woff2")}}
 @font-face{{font-family:Naskh;font-weight:700;src:url("file://{FD}/noto-naskh-arabic-arabic-700-normal.woff2")}}
 @page{{size:A4 landscape;margin:9mm}}body{{font-family:Naskh,"DejaVu Sans",sans-serif;font-size:10.5px;color:#1d2433;line-height:1.15}}
