@@ -10,6 +10,8 @@ recs=[r for r in recs if r.get('dt','')[:2].isdigit()]
 names=collections.OrderedDict(); P=collections.defaultdict(lambda: collections.defaultdict(list))
 for r in sorted(recs,key=lambda r:(int(r['id']),D.datetime.strptime(r['dt'],'%d/%m/%Y %H:%M'))):
     dt=D.datetime.strptime(r['dt'],'%d/%m/%Y %H:%M'); names[r['id']]=r['name']; P[r['id']][dt.day].append(dt.time())
+import os
+FD=os.path.join(os.path.dirname(os.path.abspath(__file__)),'fonts')
 AR={'Sat':'السبت','Sun':'الأحد','Mon':'الاثنين','Tue':'الثلاثاء','Wed':'الأربعاء','Thu':'الخميس','Fri':'الجمعة'}
 IN,OUT,CUT=D.time(7,0),D.time(14,30),D.time(11,0)
 mins=lambda a,b:(a.hour*60+a.minute)-(b.hour*60+b.minute)
@@ -45,12 +47,14 @@ for eid,nm in names.items():
 <table class="g">{''.join(rows)}</table></div>''')
 srows=''.join(f"<tr><td>{e}</td><td>{html.escape(n)}</td><td>{S['work']}</td><td>{a}</td><td class='{'bad' if S['absent'] else ''}'>{S['absent']}</td><td>{S['full']}</td><td class='{'bad' if S['miss_out'] else ''}'>{S['miss_out']}</td><td>{S['miss_in']}</td><td>{S['late_n']}</td><td>{fmt(S['late_m'])}</td><td>{S['early_n']}</td><td>{fmt(S['early_m'])}</td></tr>" for e,n,S,a in summ)
 open(sys.argv[2],'w').write(f'''<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
-@page{{size:A4 landscape;margin:9mm}}body{{font-family:"DejaVu Sans",sans-serif;font-size:9.5px;color:#1d2433}}
+@font-face{{font-family:Naskh;font-weight:400;src:url("file://{FD}/noto-naskh-arabic-arabic-400-normal.woff2")}}
+@font-face{{font-family:Naskh;font-weight:700;src:url("file://{FD}/noto-naskh-arabic-arabic-700-normal.woff2")}}
+@page{{size:A4 landscape;margin:9mm}}body{{font-family:Naskh,"DejaVu Sans",sans-serif;font-size:10.5px;color:#1d2433;line-height:1.15}}
 h1{{font-size:17px;margin:0;color:#0f3d5e;text-align:center}}.sub{{text-align:center;color:#556;margin:2px 0 8px}}
 table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #9fb0c0;text-align:center;padding:3px 2px}}
-.sum th{{background:#0f3d5e;color:#fff;font-size:9.5px}}.sum td{{font-size:10.5px;padding:5px}}.bad{{color:#b02a2a;font-weight:bold}}
+.sum th{{background:#0f3d5e;color:#fff;font-size:9.5px}}.sum td{{font-size:11px;padding:2px}}.bad{{color:#b02a2a;font-weight:bold}}
 .emp{{margin-top:9px;page-break-inside:avoid}}.eh{{display:flex;justify-content:space-between;background:#0f3d5e;color:#fff;padding:4px 8px;font-size:10px}}
-.nm{{font-size:12px;font-weight:bold}}.g tr.h th{{background:#dde7f0;font-size:9px;width:10%}}.g tr.c td{{height:30px;font-size:10px;line-height:1.35}}
+.nm{{font-size:12px;font-weight:bold}}.g tr.h th{{background:#dde7f0;font-size:9.5px;width:10%;padding:1px}}.g tr.c td{{height:26px;font-size:11px;line-height:1.15;padding:1px}}
 .fri{{background:#eceff2;color:#889}}.abs{{background:#f8d7d7;color:#b02a2a;font-weight:bold}}.inc{{background:#fff3d6}}
 .late{{color:#b02a2a;font-weight:bold}}.miss{{color:#c27a00;font-weight:bold;font-size:9px}}.r{{color:#b02a2a;font-size:8px}}
 .leg{{margin:6px 0;font-size:9.5px}}.leg span{{display:inline-block;padding:1px 7px;margin-left:8px;border:1px solid #bbb}}
